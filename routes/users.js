@@ -218,7 +218,7 @@ router.post('/insertRewardedCoins', async function (req, res1, next) {
 
 
 router.post('/getCoinAgainstUser', async function (req, res, next) {
-  console.log("Working.....", req.body)
+  console.log("Working inside.....", req.body)
     
   let dbo = await conn
 
