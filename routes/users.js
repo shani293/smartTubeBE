@@ -1,81 +1,32 @@
 var express = require('express');
 var router = express.Router();
-const conn = require('../dbconnection/db')
+const conn = require('../dbconnection/db');
+const userHelper = require('../helper/userHelper');
 
 /* GET users listing. */
 router.get('/', function (req, res, next) {
+  console.log(12);
   res.send('respond with a resource');
 });
 
 
-///////////////////////////////////////////////////////////////////////////////////////////////////
-//////////////////////////////////////////  Social Login Api   ////////////////////////////////////
-///////////////////////////////////////////////////////////////////////////////////////////////////
+router.post('/registerUser', async function (req, res) {
 
-
-router.post('/registerUser', async function (req, res, next) {
-  let dbo = await conn
-  var obj = { name: "Zaka Md", address: "Highway 37" }
-  var userdata = [];
-
-  console.log("req.headers.authorization", req.headers.authorization)
-
-  //Check Basic Auth is Exist or Not
-  if (!req.headers.authorization || req.headers.authorization.indexOf('Basic ') === -1) {
-    return res.status(401).json({ message: 'Missing Authorization Header' });
+  let response = await userHelper.registerUser(req.body)
+  if (response?.email) {
+    res.send({
+      success: true,
+      status: 201,
+      data: response
+    })
   }
-
-  //Split Basic Auth ' '
-  const base64Credentials = req.headers.authorization.split(' ')[1];
-  //Convert Basic Auth in Original
-  const credentials = Buffer.from(base64Credentials, 'base64').toString('ascii');
-
-  //Check basic Auth is same
-  if (credentials == "zaka:123") {
-
-    var searchData = { email: req.body.email };
-    //Check user is exist already if yes send record otherwise register it
-    dbo.collection("users").find(searchData).toArray(function (err, result) {
-      if (err) {
-        console.log("not found");
-      } else {
-        if (result.length > 0) {
-
-          var finalData = { Status: '200', user_data: result }
-          res.send(finalData);
-
-        }
-        else {
-
-          dbo.collection("users").insertOne(req.body, function (err, resp) {
-            if (err) {
-              console.log("Insertion Fail..")
-            }
-            else {
-
-              dbo.collection("users").find(searchData).toArray(function (err, resultRegister) {
-                if (err) {
-                  console.log("not found");
-                } else {
-
-                  var finalData = { Status: '200', user_data: resultRegister }
-                  res.send(finalData);
-
-                }
-              });
-            }
-          })
-        }
-      }
-
-
-    });
-
-  } else {
-    var finalData = { Status: '400', user_data: [] }
-    res.send(finalData);
+  else {
+    res.send({
+      success: false,
+      status: 400,
+      data: null
+    })
   }
-
 });
 
 
@@ -84,19 +35,16 @@ router.post('/registerUser', async function (req, res, next) {
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
 router.post('/insertVideo', async function (req, res, next) {
-  console.log("Working.....", req.body)
 
   let dbo = await conn
   dbo.collection("videos").insertOne(req.body, function (err, resp) {
     if (err) {
       var finalData = { Status: '400', message: "Something wrong Please, Try Again!" }
       res.send(finalData);
-      console.log("error", err)
     }
     else {
       var finalData = { Status: '200', message: "Video has been saved." }
       res.send(finalData);
-      console.log("inserted")
     }
   })
 });
@@ -107,7 +55,6 @@ router.post('/insertVideo', async function (req, res, next) {
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
 router.post('/getVideo', async function (req, res, next) {
-  console.log("Working.....", req.body)
 
   let dbo = await conn
 
@@ -135,14 +82,11 @@ router.post('/getVideo', async function (req, res, next) {
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
 router.post('/getAllVideo', async function (req, res, next) {
-  console.log("Working.....", req.body)
-
   let dbo = await conn
 
   var searchData = { user_id: req.body.user_id };
   dbo.collection("videos").find({}).toArray(function (err, videosResult) {
     if (err) {
-      console.log("not found");
       var finalData = { Status: '400', video_data: videosResult }
       res.send(finalData);
 
@@ -162,7 +106,6 @@ router.post('/getAllVideo', async function (req, res, next) {
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
 router.post('/insertRewardedCoins', async function (req, res1, next) {
-  console.log("Working.....", req.body)
 
   let dbo = await conn
   var finalData = ''
@@ -202,7 +145,7 @@ router.post('/insertRewardedCoins', async function (req, res1, next) {
           else {
             console.log("\n\n ==>Coins Updates")
             finalData = { Status: '200', message: "Coins has been saved." }
-           
+
 
           }
           res1.send(finalData);
@@ -218,20 +161,39 @@ router.post('/insertRewardedCoins', async function (req, res1, next) {
 
 
 router.post('/getCoinAgainstUser', async function (req, res, next) {
-  console.log("Working inside.....", req.body)
-    
+
   let dbo = await conn
 
-  var searchData = { user_id : req.body.user_id };
+  var searchData = { user_id: req.body.user_id };
   dbo.collection("coins").find(searchData).toArray(function (err, coinsResult) {
     if (err) {
-      console.log("not found");
       var finalData = { Status: '400', video_data: coinsResult }
       res.send(finalData);
 
     } else {
 
       var finalData = { Status: '200', video_data: coinsResult }
+      res.send(finalData);
+
+    }
+  });
+
+});
+
+router.post('/userVideosList', async function (req, res, next) {
+
+  let dbo = await conn
+
+  var searchData = { user_id: req.body.user_id };
+  dbo.collection("videos").find(searchData).toArray(function (err, response) {
+    console.log("LIST   ", response)
+    if (err) {
+      var finalData = { Status: '400', videosList: response }
+      res.send(finalData);
+
+    } else {
+
+      var finalData = { Status: '200', videosList: response }
       res.send(finalData);
 
     }
