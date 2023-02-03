@@ -23,8 +23,8 @@ app.use(express.static(path.join(__dirname, 'public')));
 // app.use('/', indexRouter);
 // app.use('/users', usersRouter);
 
-app.use('/smart_tube/', indexRouter);
-app.use('/smart_tube/users', usersRouter);
+app.use('/smart_tube1/', indexRouter);
+app.use('/smart_tube1/users', usersRouter);
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {
